@@ -23,7 +23,6 @@ OUTPUT_EVENTOS_DIR = "eventos_nuevos/"
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 log = logging.getLogger(__name__)
 
-# ================== FUNCIONES DE APOYO ==================
 
 def load_parades(file_path: str):
     path = Path(file_path)
@@ -50,7 +49,6 @@ def extract_events(df: pd.DataFrame) -> pd.DataFrame:
 
     df = df[(df["temps_arribada_min"] >= 0) & (df["temps_arribada_min"] <= MAX_ETA_MINUTES)].copy()
 
-    # Ráfagas de tiempo
     df = df.sort_values(["id_bus", "sentit", "codi_parada", "captured_at"]).reset_index(drop=True)
     df["time_gap"] = df.groupby(["id_bus", "sentit", "codi_parada"])["captured_at"].diff().dt.total_seconds() / 60.0
     df["trip_group"] = (df["time_gap"] > MIN_DIFF_VIAJE).cumsum()
@@ -105,7 +103,7 @@ def extract_events(df: pd.DataFrame) -> pd.DataFrame:
 
     df_ev = pd.DataFrame(eventos)
 
-    # Calcular huecos
+    # Calcular missings
     df_ev["ordre_faltantes"] = ""
     for (bus, sentit, v_id), grp in df_ev.groupby(["id_bus", "sentit", "viaje_n"]):
         presentes = sorted(grp["ordre"].dropna().unique())
@@ -138,7 +136,6 @@ def calculate_mean_headway(df_ev: pd.DataFrame):
     Calcula el headway entre buses, eliminando el 5% de las muestras 
     extremas (outliers) antes de calcular estadísticas.
     """
-    # 1. Ordenar y calcular headway inicial
     df_sorted = df_ev.sort_values(["sentit", "codi_parada", "timestamp_paso"]).copy()
 
     df_sorted["headway_min"] = (
@@ -147,15 +144,11 @@ def calculate_mean_headway(df_ev: pd.DataFrame):
         .dt.total_seconds() / 60.0
     )
 
-    # 2. Filtrar muestras raras (Menores al percentil 5 y mayores al 95)
-    # Lo aplicamos sobre la serie global de headways (sin contar NaNs)
-    # Cálculo mediante IQR (Rango Intercuartílico)
     Q1 = df_sorted["headway_min"].quantile(0.25)
     Q3 = df_sorted["headway_min"].quantile(0.75)
     IQR = Q3 - Q1
 
-    # Definir límites
-    lower_bound = max(1.0, Q1 - 1.5 * IQR) # No permitimos menos de 1 min
+    lower_bound = max(1.0, Q1 - 1.5 * IQR) # No permitimos menos de 1 min #TODO Fixear 
     upper_bound = Q3 + 1.5 * IQR
 
     df_filtered = df_sorted[
@@ -163,7 +156,6 @@ def calculate_mean_headway(df_ev: pd.DataFrame):
         (df_sorted["headway_min"] <= upper_bound)
     ].copy()
 
-    # 3. Calcular métricas sobre los datos filtrados
     mean_hw = (
         df_filtered.groupby(["sentit", "codi_parada", "nom_parada", "ordre"])
         .agg(
@@ -221,7 +213,6 @@ def process_file(input_path, output_path, parades_map):
     calculate_missings(df_eventos)
 
     if not df_eventos.empty:
-        # --- Headway entre buses consecutivos por parada ---
         mean_hw_df, df_eventos_con_hw = calculate_mean_headway(df_eventos)
 
         plot_headway_analysis(df_eventos_con_hw)
@@ -231,22 +222,18 @@ def process_file(input_path, output_path, parades_map):
         log.info("Std media del headway: %.2f min", mean_hw_df["headway_std_min"].mean())
 
 
-        # Guardar headway medio por parada
         hw_output_path = output_path.parent / f"{output_path.stem}_headway_medio.csv"
         mean_hw_df.to_csv(hw_output_path, index=False)
         log.info("Headway medio guardado en: %s", hw_output_path)
 
-        # --- Columnas finales del CSV de eventos ---
         df_eventos_con_hw["hora_paso"] = df_eventos_con_hw["timestamp_paso"].dt.strftime("%H:%M:%S")
         df_eventos_con_hw["min_paso"] = (
             df_eventos_con_hw["timestamp_paso"].dt.minute
             + df_eventos_con_hw["timestamp_paso"].dt.second / 60.0
         ).round(2)
         
-        # Añadir headway en segundos y eliminar entradas con headway < 5 segundos
         df_eventos_con_hw["headway_sec"] = (df_eventos_con_hw["headway_min"] * 60).round(2)
         
-        # Eliminar filas donde headway_sec es menor a 5 segundos (pero mantener NaN/primeras paradas)
         initial_rows = len(df_eventos_con_hw)
         df_eventos_con_hw = df_eventos_con_hw[
             (df_eventos_con_hw["headway_sec"].isna()) | (df_eventos_con_hw["headway_sec"] >= 5)
@@ -261,7 +248,6 @@ def process_file(input_path, output_path, parades_map):
             "nom_parada", "codi_parada", "hora_paso", "min_paso",
             "headway_min", "headway_sec", "ordre_faltantes",
         ]
-        # Mantener solo columnas existentes (por si alguna falta)
         cols_final = [c for c in cols_final if c in df_eventos_con_hw.columns]
         '''
         df_eventos_con_hw[cols_final].to_csv(output_path, index=False)

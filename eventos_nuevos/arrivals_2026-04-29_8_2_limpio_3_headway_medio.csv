@@ -1,0 +1,78 @@
+sentit,codi_parada,nom_parada,ordre,headway_medio_min,headway_mediana_min,headway_std_min,num_pasos_utiles
+Anada,3797,Metro Ernest Lluch - Final de trajecte,1,10.23,9.0,3.34,74
+Anada,2984,Cardenal Reig - Pisuerga,2,9.44,8.64,3.89,108
+Anada,2685,Cardenal Reig - Av St Ramon Nonat,3,9.37,8.49,3.86,114
+Anada,3649,Travessera de les Corts - Comte de Güell,4,9.21,8.43,3.69,116
+Anada,3747,Les Corts - Benavent,5,9.36,8.5,3.88,114
+Anada,482,Les Corts - Maternitat,6,9.22,8.56,3.89,116
+Anada,709,Les Corts - Carles III,7,9.39,8.87,3.98,114
+Anada,1577,Les Corts - Vallespir,8,9.31,8.9,4.09,115
+Anada,990,Numància - Parc Les Corts,9,9.56,8.99,4.19,112
+Anada,109,Numància - Marquès de Sentmenat,10,9.48,9.13,4.06,113
+Anada,396,Berlín - Nicaragua,11,9.39,8.88,4.03,114
+Anada,1253,Josep Tarradellas - París,12,9.3,8.52,3.86,114
+Anada,1554,Josep Tarradellas - Viladomat,13,9.28,8.87,3.95,114
+Anada,1099,Josep Tarradellas - Comte Borrell,14,9.28,8.73,3.91,114
+Anada,168,Diagonal - Francesc Macià,15,9.36,8.97,4.18,116
+Anada,929,Diagonal - Muntaner,16,9.36,9.41,4.44,116
+Anada,94,Diagonal - Balmes,17,9.36,9.28,4.47,116
+Anada,1080,Diagonal - Pau Claris,18,9.36,9.0,4.44,116
+Anada,146,Rosselló - Bruc,19,9.53,9.22,4.43,114
+Anada,1089,Rosselló - Bailèn,20,9.37,9.13,4.48,116
+Anada,213,Pg de Sant Joan - Còrsega,21,9.16,8.42,4.46,115
+Anada,3907,Indústria - Grassot,22,9.26,8.32,4.49,114
+Anada,949,Indústria - Sardenya,23,9.08,8.33,4.44,114
+Anada,913,Indústria - Lepant,24,9.23,8.73,4.64,114
+Anada,307,Av Gaudí,25,9.31,9.0,4.54,113
+Anada,212,Indústria - Independència,26,9.4,9.15,4.67,112
+Anada,2665,Indústria - Freser,27,9.39,9.04,4.67,112
+Anada,2736,Navas de Tolosa - Indústria,28,9.63,8.78,4.71,109
+Anada,705,Meridiana - Josep Estivill,29,9.39,8.97,4.85,112
+Anada,9979,"Meridiana, 298",30,9.39,8.98,5.08,112
+Anada,2492,Garcilaso - La Sagrera,31,9.53,9.2,5.11,110
+Anada,946,Berenguer de Palou - Pont del Treball Digne,32,9.3,8.77,5.14,106
+Anada,947,Berenguer de Palou - Pare Manyanet,33,9.15,8.52,5.29,110
+Anada,327,Pare Manyanet - Virgili,34,8.84,8.05,4.99,106
+Anada,3284,Segre - Borriana,35,8.97,8.33,5.15,107
+Anada,3282,Sant Adrià - Josep Soldevila,36,9.52,8.91,5.29,100
+Anada,2583,Ferran Junoy - Sant Adrià,37,9.26,8.8,4.93,99
+Anada,2590,Sao Paulo - Centre Comercial La Maquinista,38,9.28,8.67,5.32,106
+Anada,603,Lima - Ciutat d'Asunción,39,9.34,8.7,5.12,103
+Tornada,3642,Sas - Pl Celestí Boada - Final de trajecte,1,9.36,9.0,3.36,114
+Tornada,13,Sas - Claramunt,2,9.36,8.83,3.59,114
+Tornada,1435,Sant Adrià - Sas,3,8.85,8.25,3.81,123
+Tornada,1436,Ciutat d'Asunción - Sant Adrià,4,9.19,8.72,4.07,117
+Tornada,2593,Pg de l'Havana - Ciutat d'Asunción,5,9.59,8.73,4.43,112
+Tornada,2594,Parc de la Maquinista,6,9.61,8.82,4.29,112
+Tornada,3309,Josep Soldevila - Torrent Estadella,7,9.37,8.28,4.18,109
+Tornada,3310,Josep Soldevila - Onze de Setembre,8,9.38,8.6,4.32,109
+Tornada,1344,Onze de Setembre - Virgili,9,9.17,8.68,4.09,111
+Tornada,641,Gran de Sant Andreu - Fabra i Puig,10,9.02,8.55,3.91,111
+Tornada,409,Sagrera - Parc de la Pegaso,11,9.05,8.59,3.65,108
+Tornada,454,Sagrera - Martí Molins,12,8.98,8.81,3.64,106
+Tornada,9392,"Av. Meridiana, 277",13,9.12,8.77,3.81,107
+Tornada,384,Sant Antoni Maria Claret - Espronceda,14,9.16,9.03,3.95,107
+Tornada,3313,Sant Antoni Maria Claret - Trinxant,15,9.37,9.12,3.86,106
+Tornada,859,Sant Antoni Maria Claret - Rambla Volart,16,9.0,9.11,3.98,108
+Tornada,233,Sant Antoni Maria Claret - Independència,17,9.06,9.23,3.96,106
+Tornada,243,Av Gaudí - Castillejos,18,9.14,9.12,3.9,106
+Tornada,783,Sant Antoni Maria Claret - Lepant,19,9.11,8.97,3.98,106
+Tornada,3369,Sant Antoni Maria Claret - Sardenya,20,9.1,9.08,4.07,106
+Tornada,1225,Sant Antoni Maria Claret - Nàpols,21,9.08,9.11,4.17,106
+Tornada,1265,Pg de Sant Joan - Còrsega,22,9.08,9.02,4.26,106
+Tornada,3314,Còrsega - Bailèn,23,9.2,9.4,4.37,101
+Tornada,3315,Còrsega - Llúria,24,8.86,9.11,4.39,106
+Tornada,1520,Diagonal - Pg de Gràcia,25,9.12,9.41,4.52,100
+Tornada,1425,Diagonal - Balmes,26,8.64,9.12,4.57,106
+Tornada,928,Diagonal - Muntaner,27,8.96,9.27,4.66,102
+Tornada,1098,Diagonal - Francesc Macià,28,8.86,9.05,4.66,106
+Tornada,65,Josep Tarradellas - Francesc Macià,29,8.84,8.28,4.72,106
+Tornada,376,Les Corts - Pl Dr Ignasi Barraquer,30,8.97,9.27,4.74,104
+Tornada,991,Les Corts - Numància,31,9.03,9.2,4.59,100
+Tornada,484,Les Corts - Vallespir,32,9.14,9.12,4.5,97
+Tornada,485,Mercat de Les Corts,33,8.94,9.35,4.76,99
+Tornada,923,Les Corts - Mejía Lequerica,34,9.23,9.05,4.88,98
+Tornada,8535,Estadi del Futbol Club Barcelona,35,9.59,9.24,4.88,94
+Tornada,1713,Les Corts - Aurora Bertrana,36,9.33,9.38,5.03,97
+Tornada,1259,Collblanc - Cardenal Reig,37,9.01,9.15,4.85,99
+Tornada,1649,Camí de la Torre Melina - Av de Xile,38,8.82,8.9,4.85,101

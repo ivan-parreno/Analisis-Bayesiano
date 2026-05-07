@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Diagrama Espacio-Tiempo · Autobuses</title>
+    <script src="https://cdn.plot.ly/plotly-3.0.1.min.js" charset="utf-8"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <style>
+        * { box-sizing: border-box; }
+
+        body {
+            background: #0f1117;
+            margin: 0;
+            padding: 24px;
+            font-family: 'Courier New', Courier, monospace;
+            color: #c9d1d9;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1500px;
+            margin: 0 auto;
+        }
+
+        header {
+            display: flex;
+            align-items: baseline;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid #21262d;
+            padding-bottom: 1rem;
+        }
+
+        h1 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            color: #e6edf3;
+            margin: 0;
+            text-transform: uppercase;
+        }
+
+        .tag {
+            font-size: 0.7rem;
+            background: #1c2128;
+            border: 1px solid #30363d;
+            color: #7d8590;
+            padding: 2px 10px;
+            border-radius: 20px;
+            letter-spacing: 0.08em;
+        }
+
+        .upload-area {
+            background: #161b22;
+            border: 1px dashed #30363d;
+            border-radius: 8px;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color 0.15s, background 0.15s;
+            margin-bottom: 1.2rem;
+        }
+
+        .upload-area:hover, .upload-area.drag-over {
+            border-color: #58a6ff;
+            background: #1c2535;
+        }
+
+        .upload-area p {
+            margin: 0.4rem 0;
+            font-size: 0.85rem;
+            color: #7d8590;
+        }
+
+        .btn-upload {
+            display: inline-block;
+            background: #238636;
+            color: #fff;
+            border: none;
+            padding: 7px 18px;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 0.82rem;
+            cursor: pointer;
+            letter-spacing: 0.04em;
+            transition: background 0.15s;
+            margin-top: 0.6rem;
+        }
+
+        .btn-upload:hover { background: #2ea043; }
+
+        input[type="file"] { display: none; }
+
+        /* Controles: filtro sentit */
+        .controls {
+            display: flex;
+            align-items: center;
+            gap: 1.2rem;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.78rem;
+            color: #7d8590;
+            letter-spacing: 0.05em;
+        }
+
+        select {
+            background: #161b22;
+            border: 1px solid #30363d;
+            color: #c9d1d9;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 0.8rem;
+            cursor: pointer;
+        }
+
+        select:focus { outline: none; border-color: #58a6ff; }
+
+        /* Info pills */
+        .info-bar {
+            display: flex;
+            gap: 0.8rem;
+            flex-wrap: wrap;
+            margin-bottom: 1rem;
+            align-items: center;
+        }
+
+        .pill {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 20px;
+            padding: 3px 12px;
+            font-size: 0.75rem;
+            color: #8b949e;
+        }
+
+        .pill strong { color: #e6edf3; }
+
+        .status {
+            font-size: 0.75rem;
+            padding: 3px 12px;
+            border-radius: 20px;
+            background: #1c2535;
+            border: 1px solid #1f6feb;
+            color: #58a6ff;
+        }
+
+        .status.error {
+            background: #2d0f0f;
+            border-color: #f85149;
+            color: #f85149;
+        }
+
+        .status.ok {
+            background: #0d1f0f;
+            border-color: #238636;
+            color: #3fb950;
+        }
+
+        /* Plot */
+        .plot-wrap {
+            background: #161b22;
+            border: 1px solid #21262d;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        footer {
+            margin-top: 1.2rem;
+            font-size: 0.68rem;
+            color: #484f58;
+            text-align: center;
+            letter-spacing: 0.04em;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <header>
+        <h1>Diagrama Espacio-Tiempo</h1>
+        <span class="tag">STRINGLINE</span>
+        <span class="tag">AUTOBUSES</span>
+    </header>
+
+    <!-- Zona carga -->
+    <div id="dropzone" class="upload-area">
+        <p style="font-size:0.95rem; color:#c9d1d9; font-weight:600;">Arrastra y suelta tu CSV aqui</p>
+        <p>Columnas requeridas: <code>hora_paso, id_bus, viaje_n, ordre, nom_parada</code></p>
+        <p>Columnas opcionales: <code>sentit, headway_min</code></p>
+        <label class="btn-upload">
+            Seleccionar archivo
+            <input type="file" id="csvFileInput" accept=".csv">
+        </label>
+    </div>
+
+    <!-- Controles -->
+    <div class="controls">
+        <div class="control-group">
+            <span>SENTIT</span>
+            <select id="sentitFilter">
+                <option value="all">Todos</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Info bar -->
+    <div id="infoBar" class="info-bar">
+        <span class="pill">Sin datos</span>
+        <span id="statusMsg" class="status">Esperando CSV</span>
+    </div>
+
+    <!-- Grafico -->
+    <div class="plot-wrap">
+        <div id="plotlyChart" style="height: 720px; width: 100%;"></div>
+    </div>
+
+    <footer>
+        Eje Y = orden de parada (ordre) | Cada linea = un bus+viaje | Los datos se procesan 100% en el navegador
+    </footer>
+</div>
+
+<script>
+    const fileInput    = document.getElementById('csvFileInput');
+    const dropzone     = document.getElementById('dropzone');
+    const plotDiv      = document.getElementById('plotlyChart');
+    const sentitSelect = document.getElementById('sentitFilter');
+    const infoBar      = document.getElementById('infoBar');
+    const statusMsg    = document.getElementById('statusMsg');
+
+    // Estado global para poder refiltrar sin releer el CSV
+    let globalParsed = null;  // { stopMapping, tracesBySentit: {all, Anada, Tornada}, tickVals, tickTexts, stats }
+
+    // ---- Helpers UI ----
+    function setStatus(msg, type = 'info') {
+        statusMsg.textContent = msg;
+        statusMsg.className = 'status' + (type === 'error' ? ' error' : type === 'ok' ? ' ok' : '');
+    }
+
+    function updateInfoBar(numBuses, numViajes, numEvents, numStops) {
+        infoBar.innerHTML = `
+            <span class="pill">Buses: <strong>${numBuses}</strong></span>
+            <span class="pill">Viajes: <strong>${numViajes}</strong></span>
+            <span class="pill">Eventos: <strong>${numEvents}</strong></span>
+            <span class="pill">Paradas: <strong>${numStops}</strong></span>
+            <span id="statusMsg" class="status ok">Listo</span>
+        `;
+    }
+
+    // ---- Colores por bus (paleta distinguible en fondo oscuro) ----
+    const PALETTE = [
+        '#58a6ff','#3fb950','#f78166','#d2a8ff','#ffa657',
+        '#79c0ff','#56d364','#ff7b72','#bc8cff','#ffb757',
+        '#a5d6ff','#85e89d','#ffab70','#b392f0','#ffd33d',
+    ];
+
+    function busColor(busId, busIndex) {
+        return PALETTE[busIndex % PALETTE.length];
+    }
+
+    // ---- Generar trazas Plotly ----
+    function buildTraces(rows, stopMapping) {
+        // Agrupar por id_bus+viaje_n
+        const groups = new Map();  // key: "busId|||viajeN", value: [{x,y,hw}]
+        const busIndexMap = new Map();
+        let busCounter = 0;
+
+        for (const row of rows) {
+            const key = `${row.id_bus}|||${row.viaje_n}`;
+            if (!groups.has(key)) groups.set(key, []);
+            groups.get(key).push(row);
+
+            if (!busIndexMap.has(row.id_bus)) {
+                busIndexMap.set(row.id_bus, busCounter++);
+            }
+        }
+
+        const traces = [];
+
+        for (const [key, points] of groups.entries()) {
+            const [busId, viajeN] = key.split('|||');
+            points.sort((a, b) => a.x - b.x);
+
+            const xVals  = points.map(p => p.x);
+            const yVals  = points.map(p => p.y);
+            const hwVals = points.map(p => p.hw != null ? `${p.hw.toFixed(1)} min` : 'N/D');
+
+            const color = busColor(busId, busIndexMap.get(busId));
+
+            traces.push({
+                x: xVals,
+                y: yVals,
+                mode: 'lines+markers',
+                name: `Bus ${busId} · V${viajeN}`,
+                legendgroup: busId,
+                showlegend: true,
+                line: { width: 1.8, color, shape: 'linear' },
+                marker: { size: 5, color, opacity: 0.85, symbol: 'circle' },
+                connectgaps: false,
+                hovertemplate:
+                    `<b>Bus ${busId} · Viaje ${viajeN}</b><br>` +
+                    `Hora: %{x|%H:%M:%S}<br>` +
+                    `Orden parada: %{y}<br>` +
+                    `Headway: %{customdata}<extra></extra>`,
+                customdata: hwVals,
+            });
+        }
+
+        return traces;
+    }
+
+    // ---- Construir layout ----
+    function buildLayout(tickVals, tickTexts, fileName) {
+        return {
+            title: {
+                text: fileName ? `Diagrama Espacio-Tiempo · ${fileName}` : 'Diagrama Espacio-Tiempo',
+                font: { size: 14, color: '#c9d1d9', family: 'Courier New, monospace' },
+                x: 0.5,
+            },
+            xaxis: {
+                title: { text: 'Hora del dia', font: { size: 11, color: '#7d8590' } },
+                type: 'date',
+                tickformat: '%H:%M',
+                gridcolor: '#21262d',
+                gridwidth: 1,
+                showgrid: true,
+                zeroline: false,
+                color: '#7d8590',
+                tickfont: { family: 'Courier New, monospace', size: 10, color: '#7d8590' },
+            },
+            yaxis: {
+                title: { text: 'Parada (ordre)', font: { size: 11, color: '#7d8590' } },
+                tickmode: 'array',
+                tickvals: tickVals,
+                ticktext: tickTexts,
+                gridcolor: '#21262d',
+                gridwidth: 1,
+                zeroline: false,
+                color: '#7d8590',
+                tickfont: { family: 'Courier New, monospace', size: 9, color: '#7d8590' },
+                autorange: true,
+            },
+            legend: {
+                title: { text: 'Bus · Viaje', font: { size: 10, color: '#7d8590' } },
+                orientation: 'v',
+                x: 1.01,
+                y: 1,
+                xanchor: 'left',
+                bgcolor: 'rgba(22,27,34,0.95)',
+                bordercolor: '#30363d',
+                borderwidth: 1,
+                font: { family: 'Courier New, monospace', size: 9, color: '#c9d1d9' },
+            },
+            hovermode: 'closest',
+            margin: { l: 130, r: 180, t: 50, b: 50 },
+            plot_bgcolor: '#0d1117',
+            paper_bgcolor: '#161b22',
+            font: { family: 'Courier New, monospace', color: '#c9d1d9' },
+        };
+    }
+
+    // ---- Render chart ----
+    function renderChart(sentit) {
+        if (!globalParsed) return;
+        const { rowsBySentit, stopMapping, allOrdres, fileName } = globalParsed;
+
+        const rows = sentit === 'all'
+            ? Object.values(rowsBySentit).flat()
+            : (rowsBySentit[sentit] || []);
+
+        // Reconstruir tickVals/tickTexts desde las paradas visibles
+        const presentOrdres = [...new Set(rows.map(r => r.y))].sort((a,b) => a-b);
+        const tickVals  = presentOrdres;
+        const tickTexts = presentOrdres.map(o => stopMapping.get(o) || `Parada ${o}`);
+
+        const traces = buildTraces(rows, stopMapping);
+        const layout = buildLayout(tickVals, tickTexts, fileName);
+        const config = { responsive: true, displayModeBar: true, modeBarButtonsToRemove: ['lasso2d','select2d'] };
+
+        Plotly.newPlot(plotDiv, traces, layout, config);
+    }
+
+    // ---- Parsear CSV ----
+    function processAndPlot(csvString, fileName) {
+        setStatus('Procesando CSV...');
+        Papa.parse(csvString, {
+            header: true,
+            dynamicTyping: true,
+            skipEmptyLines: true,
+            complete: (results) => {
+                const data = results.data;
+                if (!data || data.length === 0) { setStatus('CSV vacio.', 'error'); return; }
+
+                const required = ['hora_paso', 'id_bus', 'viaje_n', 'ordre', 'nom_parada'];
+                const missing  = required.filter(c => !(c in data[0]));
+                if (missing.length > 0) {
+                    setStatus(`Columnas faltantes: ${missing.join(', ')}`, 'error');
+                    return;
+                }
+
+                // Fecha base (misma para todas las horas, solo nos importa la hora)
+                const BASE_DATE = '2000-01-01';
+
+                const stopMapping  = new Map();   // ordre -> nom_parada
+                const rowsBySentit = {};           // sentit -> [{x, y, hw, id_bus, viaje_n}]
+                let totalValid = 0;
+
+                for (const row of data) {
+                    const horaRaw = row['hora_paso'];
+                    const busId   = row['id_bus'];
+                    const viajeN  = row['viaje_n'];
+                    const ordreRaw = row['ordre'];
+                    const stopName = row['nom_parada'];
+                    const sentit   = row['sentit'] != null ? String(row['sentit']).trim() : 'SinSentit';
+                    const hw       = row['headway_min'] != null ? Number(row['headway_min']) : null;
+
+                    if (!busId || ordreRaw == null || viajeN == null) continue;
+
+                    const ordreNum = Number(ordreRaw);
+                    if (isNaN(ordreNum)) continue;
+
+                    // Parsear hora HH:MM:SS
+                    const parsedDate = new Date(`${BASE_DATE}T${horaRaw}`);
+                    if (isNaN(parsedDate.getTime())) continue;
+
+                    // Stop mapping
+                    if (!stopMapping.has(ordreNum) && stopName && String(stopName).trim() !== '') {
+                        stopMapping.set(ordreNum, String(stopName).trim());
+                    } else if (!stopMapping.has(ordreNum)) {
+                        stopMapping.set(ordreNum, `Parada ${ordreNum}`);
+                    }
+
+                    if (!rowsBySentit[sentit]) rowsBySentit[sentit] = [];
+                    rowsBySentit[sentit].push({
+                        x: parsedDate,
+                        y: ordreNum,
+                        hw,
+                        id_bus: String(busId),
+                        viaje_n: viajeN,
+                        sentit,
+                    });
+                    totalValid++;
+                }
+
+                if (totalValid === 0) {
+                    setStatus('No se encontraron filas validas.', 'error');
+                    return;
+                }
+
+                // Calcular stats
+                const allRows   = Object.values(rowsBySentit).flat();
+                const numBuses  = new Set(allRows.map(r => r.id_bus)).size;
+                const numViajes = new Set(allRows.map(r => `${r.id_bus}|||${r.viaje_n}`)).size;
+                const numStops  = stopMapping.size;
+
+                // Poblar selector de sentit
+                const sentits = Object.keys(rowsBySentit).sort();
+                sentitSelect.innerHTML = '<option value="all">Todos</option>';
+                sentits.forEach(s => {
+                    const opt = document.createElement('option');
+                    opt.value = s; opt.textContent = s;
+                    sentitSelect.appendChild(opt);
+                });
+
+                globalParsed = { rowsBySentit, stopMapping, fileName };
+
+                renderChart('all');
+                updateInfoBar(numBuses, numViajes, totalValid, numStops);
+            },
+            error: (err) => setStatus(`Error al parsear: ${err.message}`, 'error'),
+        });
+    }
+
+    // ---- Evento cambio de filtro ----
+    sentitSelect.addEventListener('change', () => {
+        renderChart(sentitSelect.value);
+    });
+
+    // ---- Eventos de archivo ----
+    function handleFile(file) {
+        if (!file) return;
+        if (!file.name.toLowerCase().endsWith('.csv')) {
+            setStatus('Sube un archivo .csv', 'error'); return;
+        }
+        setStatus(`Leyendo ${file.name}...`);
+        const reader = new FileReader();
+        reader.onload = e => processAndPlot(e.target.result, file.name);
+        reader.onerror = () => setStatus('Error al leer el archivo.', 'error');
+        reader.readAsText(file, 'UTF-8');
+    }
+
+    fileInput.addEventListener('change', e => { if (e.target.files[0]) handleFile(e.target.files[0]); });
+
+    dropzone.addEventListener('dragover',  e => { e.preventDefault(); dropzone.classList.add('drag-over'); });
+    dropzone.addEventListener('dragleave', e => { e.preventDefault(); dropzone.classList.remove('drag-over'); });
+    dropzone.addEventListener('drop', e => {
+        e.preventDefault(); dropzone.classList.remove('drag-over');
+        if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
+    });
+    dropzone.addEventListener('click', e => {
+        if (!e.target.closest('label')) fileInput.click();
+    });
+
+    Plotly.newPlot(plotDiv, [], {
+        xaxis: { title: { text: 'Hora', font: { color: '#7d8590' } }, color: '#484f58', gridcolor: '#21262d' },
+        yaxis: { title: { text: 'Parada', font: { color: '#7d8590' } }, color: '#484f58', gridcolor: '#21262d' },
+        plot_bgcolor: '#0d1117', paper_bgcolor: '#161b22',
+        font: { family: 'Courier New, monospace', color: '#484f58' },
+        annotations: [{
+            text: 'Sube tu CSV para visualizar',
+            showarrow: false, x: 0.5, y: 0.5,
+            xref: 'paper', yref: 'paper',
+            font: { size: 14, color: '#484f58', family: 'Courier New, monospace' }
+        }],
+    });
+</script>
+</body>
+</html>

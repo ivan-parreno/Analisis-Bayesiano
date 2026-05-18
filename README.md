@@ -25,7 +25,7 @@ Este repositorio contiene el script **`postprocess.py`** que procesa datos de ll
 
 1. Navega al directorio del proyecto:
 ```bash
-cd /Users/ivan/Downloads/AWS/data
+cd /Directory/
 ```
 
 2. Crea un entorno virtual (opcional pero recomendado):
@@ -166,12 +166,3 @@ Para actualizar dependencias, edita `requirements.txt` y ejecuta:
 ```bash
 pip install -r requirements.txt --upgrade
 ```
-
-## Licencia y contacto
-
-Proyecto de análisis de eventos de paradas de autobuses (AWS/Data).
-
-Para preguntas o mejoras, revisa los logs y verifica la configuración de parámetros.
-
----
-**Última actualización:** 7 de mayo de 2026

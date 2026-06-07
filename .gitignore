@@ -1,0 +1,43 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+# OS
+.DS_Store
+
+# Datos y artefactos generados
+raw/
+data/
+processed/
+!processed/figures/
+!processed/figures/**
+bayesian/traces/
+bayesian/outputs/
+bayesian/data/
+bayesian/R/output/
+bayesian/R/output2/
+bayesian/R/stan/*.rds
+bayesian/R/.RData
+bayesian/R/.RDataTmp
+bayesian/R/.Rhistory
+*.rds
+!bayesian/R/stan/
+*.png
+*.html
+!processed/figures/*.html
+
+# Carpetas legacy
+eventos/
+eventos_1/
+eventos_finales/
+eventos_modificado_2/
+eventos_nuevos/
+output/
+trash/

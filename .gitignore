@@ -15,8 +15,8 @@ wheels/
 # Datos y artefactos generados
 raw/
 data/
-processed/
-!processed/figures/
+processed/figures/
+!processed/eventos/
 !processed/figures/**
 bayesian/traces/
 bayesian/outputs/
@@ -34,7 +34,6 @@ bayesian/R/.Rhistory
 !processed/figures/*.html
 
 # Carpetas legacy
-eventos/
 eventos_1/
 eventos_finales/
 eventos_modificado_2/

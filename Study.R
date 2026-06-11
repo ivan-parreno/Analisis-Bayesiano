@@ -1,54 +1,100 @@
-# rstan libraries
-library(tidyv)
-library(dplyr)
+library(tidyverse)
 library(rstan)
-options(mc.cores = parallel::detectCores())
 
-# impor dataset from the folder
-df <- read.csv("eventos_nuevos/arrivals_2026-05-02_8_2_limpio_3.csv")
+rstan_options(auto_write = TRUE)
+options(mc.cores = 4)
 
-headways <- df %>%
-  filter(!is.na(headway_min), headway_min > 0) %>%
+leer_headway <- function(f) {
+  
+  fecha <- str_extract(
+    basename(f),
+    "\\d{4}-\\d{2}-\\d{2}"
+  )
+  
+  read.csv(f) %>%
+    mutate(
+      source_file = basename(f),
+      fecha = as.Date(fecha)
+    )
+}
+
+Y_SHIFT <- 0.16
+HW_MIN <- 1
+HW_MAX <- 30
+
+DATA_DIR <- "processed/headways/"
+
+hora_a_franja <- function(hora) {
+  ifelse(hora <= 6, 0,
+         ifelse(hora <= 21, hora - 6, 16))
+}
+
+files_info <- tibble(
+  file = list.files(
+    DATA_DIR,
+    pattern = "^headways_pares3_H8_Anada_\\d{4}-\\d{2}-\\d{2}.*\\.csv$",
+    full.names = TRUE
+  )
+) %>%
   mutate(
-    stop_id = as.integer(factor(paste(sentit, codi_parada))),
-    time_id = as.integer(factor(hora_paso))
+    fecha = as.Date(str_extract(basename(file), "\\d{4}-\\d{2}-\\d{2}")),
+    weekday = as.integer(format(fecha, "%u")) # lunes=1, ..., domingo=7
+  ) %>%
+  arrange(fecha) %>%
+  group_by(weekday) %>%
+  slice_head(n = 2) %>%
+  ungroup()
+
+files <- files_info$file
+
+files_info %>%
+  select(fecha, weekday, file)
+
+df_all <- map_dfr(files, leer_headway)
+
+headways <- df_all %>%
+  filter(
+    !is.na(headway_pair),
+    headway_pair >= HW_MIN,
+    headway_pair <= HW_MAX
+  ) %>%
+  mutate(
+    weekday = as.integer(format(fecha, "%u")),  # lunes=1, domingo=7
+    franja = hora_a_franja(as.integer(franja_hora)),
+    H = headway_pair - Y_SHIFT
+  ) %>%
+  filter(H > 0) %>%
+  mutate(
+    stop = as.integer(factor(codi_parada)),
+    time = as.integer(factor(paste(weekday, franja, sep = "_")))
   )
 
 stan_data <- list(
   N = nrow(headways),
-  S = max(headways$stop_id),
-  Tt = max(headways$time_id),
-  stop = headways$stop_id,
-  time = headways$time_id,
-  H = headways$headway_min
+  S = max(headways$stop),
+  Tt = max(headways$time),
+  stop = headways$stop,
+  time = headways$time,
+  H = headways$H
 )
 
-fit <- stan(
-  file = "models_stan/headway_model.stan",
+table(headways$fecha)
+table(headways$weekday)
+length(unique(headways$stop))
+length(unique(headways$time))
+summary(headways$H)
+
+fit <- rstan::stan(
+  file = "bayesian/R/stan/headway_model.stan",
   data = stan_data,
   chains = 4,
-  cores = parallel::detectCores(),
+  cores = 4,
   iter = 2000,
-  warmup = 1000,
+  warmup = 500,
   seed = 123,
-  control = list(adapt_delta = 0.95)
+  control = list(adapt_delta = 0.99),
+  refresh = 100
 )
-
 
 print(fit, pars = c("alpha", "sigma_stop", "sigma_time", "kappa"))
-
-summary(fit, pars = c("alpha", "sigma_stop", "sigma_time", "kappa"))$summary
-
-length(unique(headways$stop_id))
-length(unique(headways$time_id))
-
-
-# example of prediction for random stop and time
-post <- rstan::extract(fit)
-
-mu_draws <- exp(
-  post$alpha +
-    post$a_stop[,15] +
-    post$b_time[,8]
-)
-quantile(mu_draws, c(0.025,0.5,0.975))
+saveRDS(fit, file.path("bayesian/R/stan/fits", "headway_model_fit.rds"))
